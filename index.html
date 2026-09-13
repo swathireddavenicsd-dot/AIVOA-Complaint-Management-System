@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>AIVOA Complaint Management</title>
+        <style>
+            :root {
+                --ink: #17324d;
+                --muted: #65798d;
+                --line: #d9e3ea;
+                --surface: #ffffff;
+                --canvas: #f4f8fa;
+                --navy: #0f3d5e;
+                --teal: #168b8b;
+                --teal-dark: #0d6e70;
+                --soft-teal: #e9f7f6;
+                --shadow: 0 16px 42px rgba(25, 57, 80, 0.09);
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                min-height: 100vh;
+                background: var(--canvas);
+                color: var(--ink);
+                font-family: "Segoe UI", Tahoma, sans-serif;
+            }
+
+            .app-shell {
+                width: min(1180px, calc(100% - 40px));
+                margin: 0 auto;
+                padding: 34px 0 48px;
+            }
+
+            .app-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+                gap: 24px;
+                margin-bottom: 28px;
+                padding-bottom: 22px;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .eyebrow {
+                margin: 0 0 8px;
+                color: var(--teal-dark);
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 1.4px;
+                text-transform: uppercase;
+            }
+
+            h1,
+            h2,
+            p {
+                margin-top: 0;
+            }
+
+            h1 {
+                margin-bottom: 8px;
+                color: var(--navy);
+                font-size: clamp(28px, 4vw, 42px);
+                letter-spacing: -0.8px;
+                line-height: 1.1;
+            }
+
+            .subtitle {
+                max-width: 650px;
+                margin-bottom: 0;
+                color: var(--muted);
+                font-size: 15px;
+                line-height: 1.6;
+            }
+
+            .header-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 9px;
+                flex-shrink: 0;
+                padding: 9px 13px;
+                border: 1px solid #c9e8e4;
+                border-radius: 999px;
+                background: var(--soft-teal);
+                color: var(--teal-dark);
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #2ba66f;
+                box-shadow: 0 0 0 4px rgba(43, 166, 111, 0.14);
+            }
+
+            .page-layout {
+                display: grid;
+                grid-template-columns: minmax(0, 1.15fr) minmax(330px, 0.85fr);
+                gap: 24px;
+                align-items: start;
+            }
+
+            .complaint-form,
+            .ai-assistant {
+                min-width: 0;
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                background: var(--surface);
+                box-shadow: var(--shadow);
+            }
+
+            .complaint-form {
+                padding: 28px;
+            }
+
+            .ai-assistant {
+                padding: 25px;
+                border-top: 4px solid var(--teal);
+            }
+
+            .panel-heading {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 18px;
+                margin-bottom: 24px;
+            }
+
+            h2 {
+                margin-bottom: 6px;
+                color: var(--navy);
+                font-size: 21px;
+                line-height: 1.25;
+            }
+
+            .panel-description {
+                margin-bottom: 0;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.5;
+            }
+
+            .panel-mark {
+                display: grid;
+                width: 38px;
+                height: 38px;
+                flex-shrink: 0;
+                place-items: center;
+                border-radius: 8px;
+                background: var(--soft-teal);
+                color: var(--teal-dark);
+                font-size: 18px;
+                font-weight: 800;
+            }
+
+            .form-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 18px 16px;
+            }
+
+            .field {
+                min-width: 0;
+            }
+
+            .field-wide {
+                grid-column: 1 / -1;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 7px;
+                color: var(--ink);
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                border: 1px solid #cbd8e1;
+                border-radius: 6px;
+                background: #fbfdfe;
+                color: var(--ink);
+                font: inherit;
+                font-size: 14px;
+                outline: none;
+                transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+            }
+
+            input,
+            select {
+                height: 43px;
+                padding: 0 12px;
+            }
+
+            textarea {
+                display: block;
+                min-height: 124px;
+                padding: 12px;
+                resize: vertical;
+                line-height: 1.5;
+            }
+
+            input:focus,
+            select:focus,
+            textarea:focus {
+                border-color: var(--teal);
+                background: #ffffff;
+                box-shadow: 0 0 0 3px rgba(22, 139, 139, 0.12);
+            }
+
+            .form-actions {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-top: 22px;
+            }
+
+            button {
+                min-height: 42px;
+                padding: 0 18px;
+                border: 1px solid var(--teal-dark);
+                border-radius: 6px;
+                background: var(--teal-dark);
+                color: #ffffff;
+                cursor: pointer;
+                font: inherit;
+                font-size: 13px;
+                font-weight: 700;
+                transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+            }
+
+            button:hover {
+                border-color: #095b5e;
+                background: #095b5e;
+                transform: translateY(-1px);
+            }
+
+            button:active {
+                transform: translateY(0);
+            }
+
+            #result,
+            #aiResult {
+                white-space: pre-line;
+                margin: 0;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.7;
+            }
+
+            #result:empty,
+            #aiResult:empty {
+                display: none;
+            }
+
+            #result {
+                padding: 12px 14px;
+                border-left: 3px solid var(--teal);
+                background: #f3fbfa;
+            }
+
+            .assistant-intro {
+                margin-bottom: 18px;
+            }
+
+            #assistantComplaint {
+                min-height: 176px;
+                margin-bottom: 16px;
+            }
+
+            .upload-label {
+                margin-top: 2px;
+            }
+
+            .upload-control {
+                width: 100%;
+                padding: 9px 10px;
+                border: 1px dashed #b8cbd5;
+                border-radius: 6px;
+                background: #f8fbfc;
+                color: var(--muted);
+                font-size: 12px;
+            }
+
+            .upload-help {
+                margin: 7px 0 0;
+                color: var(--muted);
+                font-size: 11px;
+            }
+
+            #selectedFileName {
+                min-height: 20px;
+                margin: 8px 0 18px;
+                color: var(--teal-dark);
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            .assistant-action {
+                margin-bottom: 18px;
+            }
+
+            #aiResult {
+                padding: 15px;
+                border: 1px solid #c9e8e4;
+                border-radius: 6px;
+                background: var(--soft-teal);
+                color: var(--ink);
+            }
+
+            .history-section {
+                margin-top: 24px;
+                padding: 28px;
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                background: var(--surface);
+                box-shadow: var(--shadow);
+            }
+
+            .history-table-wrapper {
+                overflow-x: auto;
+                border: 1px solid var(--line);
+                border-radius: 7px;
+            }
+
+            .history-table {
+                width: 100%;
+                min-width: 920px;
+                border-collapse: collapse;
+                background: var(--surface);
+                font-size: 12px;
+                text-align: left;
+            }
+
+            .history-table th {
+                padding: 12px 13px;
+                border-bottom: 1px solid var(--line);
+                background: #f3f8fa;
+                color: var(--muted);
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.4px;
+                text-transform: uppercase;
+                white-space: nowrap;
+            }
+
+            .history-table td {
+                padding: 13px;
+                border-bottom: 1px solid #edf2f5;
+                color: var(--ink);
+                vertical-align: top;
+            }
+
+            .history-table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+
+            .history-table tbody tr:hover {
+                background: #fbfdfd;
+            }
+
+            .history-empty {
+                margin: 0;
+                padding: 18px;
+                border: 1px dashed #cbd8e1;
+                border-radius: 7px;
+                color: var(--muted);
+                font-size: 13px;
+                text-align: center;
+            }
+
+            .history-filters {
+                display: grid;
+                grid-template-columns: minmax(220px, 1.6fr) 1fr 1fr;
+                gap: 12px;
+                margin-bottom: 18px;
+            }
+
+            .history-filters input,
+            .history-filters select {
+                height: 40px;
+            }
+
+            .dashboard-section {
+                margin-top: 24px;
+            }
+
+            .dashboard-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+
+            .dashboard-card {
+                padding: 20px;
+                border: 1px solid var(--line);
+                border-radius: 9px;
+                background: var(--surface);
+                box-shadow: var(--shadow);
+            }
+
+            .dashboard-label {
+                margin: 0 0 10px;
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.3px;
+                text-transform: uppercase;
+            }
+
+            .dashboard-value {
+                margin: 0;
+                color: var(--navy);
+                font-size: 32px;
+                font-weight: 800;
+                line-height: 1;
+            }
+
+            .dashboard-card.urgent {
+                border-top: 3px solid #c35b5b;
+            }
+
+            .dashboard-card.routine {
+                border-top: 3px solid var(--teal);
+            }
+
+            @media (max-width: 840px) {
+                .page-layout {
+                    grid-template-columns: 1fr;
+                }
+
+                .ai-assistant {
+                    order: 2;
+                }
+            }
+
+            @media (max-width: 560px) {
+                .app-shell {
+                    width: min(100% - 24px, 520px);
+                    padding-top: 22px;
+                }
+
+                .app-header {
+                    display: block;
+                }
+
+                .header-status {
+                    margin-top: 17px;
+                }
+
+                .complaint-form,
+                .ai-assistant {
+                    padding: 20px;
+                }
+
+                .form-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .field-wide {
+                    grid-column: auto;
+                }
+
+                .dashboard-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .history-filters {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+<body>
+    <main class="app-shell">
+        <header class="app-header">
+            <div>
+                <p class="eyebrow">AIVOA / Quality Operations</p>
+                <h1>Complaint Management</h1>
+                <p class="subtitle">Capture, classify, and triage pharmaceutical complaints from one focused workspace.</p>
+            </div>
+            <div class="header-status"><span class="status-dot"></span>System ready</div>
+        </header>
+
+        <div class="page-layout">
+            <section class="complaint-form">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Customer Complaint</h2>
+                        <p class="panel-description">Record the complaint details for quality review.</p>
+                    </div>
+                    <span class="panel-mark">+</span>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="customer_name">Customer Name</label>
+                        <input type="text" id="customer_name">
+                    </div>
+                    <div class="field">
+                        <label for="productName">Product Name</label>
+                        <input type="text" id="productName">
+                    </div>
+                    <div class="field">
+                        <label for="batchNumber">Batch/Lot Number</label>
+                        <input type="text" id="batchNumber">
+                    </div>
+                    <div class="field">
+                        <label for="severity">Severity</label>
+                        <select id="severity">
+                            <option>Low</option>
+                            <option>Medium</option>
+                            <option>High</option>
+                            <option>Critical</option>
+                        </select>
+                    </div>
+                    <div class="field field-wide">
+                        <label for="complaint">Complaint Description</label>
+                        <textarea id="complaint" rows="5"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="saveComplaint()">Save Complaint</button>
+                    <p id="result"></p>
+                </div>
+            </section>
+
+            <aside class="ai-assistant">
+                <div class="panel-heading assistant-intro">
+                    <div>
+                        <h2>AI Assistant</h2>
+                        <p class="panel-description">Analyze a complaint before routing it for review.</p>
+                    </div>
+                    <span class="panel-mark">AI</span>
+                </div>
+                <label for="assistantComplaint">Complaint to analyze</label>
+                <textarea id="assistantComplaint" rows="8" placeholder="Paste the complaint description here..."></textarea>
+                <label class="upload-label" for="complaintDocument">Or upload a complaint document</label>
+                <input class="upload-control" type="file" id="complaintDocument" accept=".txt,.pdf,.docx">
+                <p class="upload-help">Supported formats: TXT, PDF, DOCX. Document analysis will be added later.</p>
+                <p id="selectedFileName" aria-live="polite"></p>
+                <div class="assistant-action">
+                    <button type="button" onclick="analyzeComplaint()">Analyze Complaint</button>
+                </div>
+                <p id="aiResult"></p>
+            </aside>
+        </div>
+
+        <section class="dashboard-section" aria-label="Complaint dashboard">
+            <div class="dashboard-grid">
+                <article class="dashboard-card">
+                    <p class="dashboard-label">Total Complaints</p>
+                    <p class="dashboard-value" id="totalComplaints">0</p>
+                </article>
+                <article class="dashboard-card urgent">
+                    <p class="dashboard-label">High / Critical</p>
+                    <p class="dashboard-value" id="highCriticalComplaints">0</p>
+                </article>
+                <article class="dashboard-card routine">
+                    <p class="dashboard-label">Low / Medium</p>
+                    <p class="dashboard-value" id="lowMediumComplaints">0</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="history-section">
+            <div class="panel-heading">
+                <div>
+                    <h2>Complaint History</h2>
+                    <p class="panel-description">Submitted complaints saved in this browser.</p>
+                </div>
+                <span class="panel-mark">H</span>
+            </div>
+            <div class="history-filters">
+                <input type="search" id="historySearch" placeholder="Search customer, product, or batch number">
+                <select id="historySeverityFilter" aria-label="Filter by severity">
+                    <option value="">All severities</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                </select>
+                <select id="historyPriorityFilter" aria-label="Filter by priority">
+                    <option value="">All priorities</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                </select>
+            </div>
+            <div id="historyContent">
+                <p class="history-empty">No complaints have been saved yet.</p>
+            </div>
+        </section>
+    </main>
+<script>
+
+    async function saveComplaint(){
+        const customerName = document.getElementById("customer_name").value.trim();
+        const productName = document.getElementById("productName").value.trim();
+        const batchNumber = document.getElementById("batchNumber").value.trim();
+        const description = document.getElementById("complaint").value.trim();
+        const missingFields = [];
+
+        if (!customerName) missingFields.push("Customer Name");
+        if (!productName) missingFields.push("Product Name");
+        if (!batchNumber) missingFields.push("Batch/Lot Number");
+        if (!description) missingFields.push("Complaint Description");
+
+        if (missingFields.length > 0) {
+            document.getElementById("result").innerText =
+                `Please complete the following required fields:\n- ${missingFields.join("\n- ")}`;
+            return;
+        }
+
+        const complaintData = {
+            customerName: customerName,
+            productName: productName,
+            batchNumber: batchNumber,
+            complaint: description,
+            description: description,
+            severity: document.getElementById("severity").value,
+            check_duplicate: true
+        };
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/complaints", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(complaintData)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || `Server returned ${response.status}`);
+            }
+
+            const aiResult = data.ai_result;
+            document.getElementById("result").style.whiteSpace = "pre-line";
+            let resultMessage =
+                `Complaint saved successfully\n` +
+                `Category: ${aiResult.category}\n` +
+                `Severity: ${aiResult.severity}\n` +
+                `Priority: ${aiResult.priority}\n` +
+                `Summary: ${aiResult.summary}\n` +
+                `Root Cause: ${aiResult.root_cause}\n` +
+                `Corrective Action: ${aiResult.corrective_action}\n` +
+                `Preventive Action: ${aiResult.preventive_action}`;
+
+            if (data.duplicate_warning) {
+                resultMessage += `\n\nWarning: ${data.duplicate_warning}`;
+            }
+
+            document.getElementById("result").innerText = resultMessage;
+            saveComplaintToHistory(complaintData, aiResult);
+        } catch (error) {
+            document.getElementById("result").innerText = `Error saving complaint: ${error.message}`;
+            console.error(error);
+        }
+    }
+
+    async function analyzeComplaint(){
+        const description = document.getElementById("assistantComplaint").value.trim();
+        const resultElement = document.getElementById("aiResult");
+
+        if (!description) {
+            resultElement.innerText = "Please paste a complaint to analyze.";
+            return;
+        }
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/complaints", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ description: description })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || `Server returned ${response.status}`);
+            }
+
+            const aiResult = data.ai_result;
+            resultElement.innerText =
+                `Category: ${aiResult.category}\n` +
+                `Severity: ${aiResult.severity}\n` +
+                `Priority: ${aiResult.priority}\n` +
+                `Summary: ${aiResult.summary}\n` +
+                `Root Cause: ${aiResult.root_cause}\n` +
+                `Corrective Action: ${aiResult.corrective_action}\n` +
+                `Preventive Action: ${aiResult.preventive_action}`;
+        } catch (error) {
+            resultElement.innerText = `Error analyzing complaint: ${error.message}`;
+            console.error(error);
+        }
+    }
+
+    document.getElementById("complaintDocument").addEventListener("change", function(event){
+        const selectedFile = event.target.files[0];
+        document.getElementById("selectedFileName").innerText = selectedFile
+            ? `Selected file: ${selectedFile.name}`
+            : "";
+    });
+
+    const complaintHistoryKey = "aivoaComplaintHistory";
+
+    function getComplaintHistory(){
+        try {
+            return JSON.parse(localStorage.getItem(complaintHistoryKey) || "[]");
+        } catch (error) {
+            console.error("Unable to read complaint history", error);
+            return [];
+        }
+    }
+
+    function saveComplaintToHistory(complaintData, aiResult){
+        const history = getComplaintHistory();
+        history.unshift({
+            customerName: complaintData.customerName,
+            productName: complaintData.productName,
+            batchNumber: complaintData.batchNumber,
+            category: aiResult.category,
+            severity: aiResult.severity,
+            priority: aiResult.priority,
+            date: new Date().toLocaleString()
+        });
+        localStorage.setItem(complaintHistoryKey, JSON.stringify(history));
+        renderDashboard(history);
+        renderComplaintHistory();
+    }
+
+    function renderDashboard(history){
+        const highCriticalCount = history.filter(function(complaint){
+            return ["High", "Critical"].includes(complaint.severity);
+        }).length;
+        const lowMediumCount = history.filter(function(complaint){
+            return ["Low", "Medium"].includes(complaint.severity);
+        }).length;
+
+        document.getElementById("totalComplaints").innerText = history.length;
+        document.getElementById("highCriticalComplaints").innerText = highCriticalCount;
+        document.getElementById("lowMediumComplaints").innerText = lowMediumCount;
+    }
+
+    function renderComplaintHistory(){
+        const historyContent = document.getElementById("historyContent");
+        const history = getComplaintHistory();
+        const searchTerm = document.getElementById("historySearch").value.trim().toLowerCase();
+        const severityFilter = document.getElementById("historySeverityFilter").value;
+        const priorityFilter = document.getElementById("historyPriorityFilter").value;
+        const filteredHistory = history.filter(function(complaint){
+            const matchesSearch = [
+                complaint.customerName,
+                complaint.productName,
+                complaint.batchNumber
+            ].some(function(value){
+                return String(value || "").toLowerCase().includes(searchTerm);
+            });
+            const matchesSeverity = !severityFilter || complaint.severity === severityFilter;
+            const matchesPriority = !priorityFilter || complaint.priority === priorityFilter;
+            return matchesSearch && matchesSeverity && matchesPriority;
+        });
+
+        if (history.length === 0) {
+            historyContent.innerHTML = "<p class=\"history-empty\">No complaints have been saved yet.</p>";
+            return;
+        }
+
+        if (filteredHistory.length === 0) {
+            historyContent.innerHTML = "<p class=\"history-empty\">No complaints match the current search and filters.</p>";
+            return;
+        }
+
+        const table = document.createElement("table");
+        table.className = "history-table";
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Product Name</th>
+                    <th>Batch/Lot Number</th>
+                    <th>Category</th>
+                    <th>Severity</th>
+                    <th>Priority</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        `;
+
+        const tableBody = table.querySelector("tbody");
+        filteredHistory.forEach(function(complaint){
+            const row = document.createElement("tr");
+            [
+                complaint.customerName,
+                complaint.productName,
+                complaint.batchNumber,
+                complaint.category,
+                complaint.severity,
+                complaint.priority,
+                complaint.date
+            ].forEach(function(value){
+                const cell = document.createElement("td");
+                cell.textContent = value || "-";
+                row.appendChild(cell);
+            });
+            tableBody.appendChild(row);
+        });
+
+        historyContent.innerHTML = "";
+        const tableWrapper = document.createElement("div");
+        tableWrapper.className = "history-table-wrapper";
+        tableWrapper.appendChild(table);
+        historyContent.appendChild(tableWrapper);
+    }
+
+    const initialHistory = getComplaintHistory();
+    renderDashboard(initialHistory);
+    renderComplaintHistory();
+    document.getElementById("historySearch").addEventListener("input", renderComplaintHistory);
+    document.getElementById("historySeverityFilter").addEventListener("change", renderComplaintHistory);
+    document.getElementById("historyPriorityFilter").addEventListener("change", renderComplaintHistory);
+</script>
+</body>
+</html>
+    
